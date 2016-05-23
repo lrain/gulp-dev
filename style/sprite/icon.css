@@ -1,0 +1,15 @@
+.icon-qq,
+.icon-sina {
+  background-image: url("/image/sprites/icon.png");
+  display: inline-block;
+}
+.icon-qq {
+  background-position: 0px -31px;
+  width: 20px;
+  height: 23px;
+}
+.icon-sina {
+  background-position: 0px 0px;
+  width: 27px;
+  height: 21px;
+}
