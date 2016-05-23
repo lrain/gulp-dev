@@ -1,2 +1,3 @@
 # gulp-dev
-hello world!!!!!
+dev: gulp  dev
+deploy: gulp depoly
