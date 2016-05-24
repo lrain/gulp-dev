@@ -28,7 +28,7 @@ var Pem = require('pem');
 var slash = require('slash');
 var debug = require('gulp-debug');
 
-var packageJson = JSON.parse(fs.readFileSync('./package.json'));
+var packageJson = require('./package.json');
 
 var projectDirPath = packageJson.sftp.dirPath + packageJson.project;
 
@@ -48,13 +48,8 @@ gulp.task('sprite', function() {
 });
 
 gulp.task('less', function() {
-   // var cssStream = gulp.src(['../less/**/*.less', '!../less/include/*.less'])
-
-   // var lessModifyVars = createLessMofifyVars('../image/sprites/*.png');
-   // var lessModifyVars = createLessMofifyVars(['../image/sprites/**/*', '../image/page/**/*']);
    return gulp.src('less/**/*.less')
                .pipe(less({
-                  // paths: [path.join(__dirname, '../less', 'include')],
                   modifyVars: {
                      "imgPath": "\"/image\""
                   }
@@ -71,7 +66,6 @@ gulp.task('webpack', function() {
 });
 
 gulp.task('watch', function () {
-   // livereload.listen();
    gulp.watch('less/**/*.less', ['less']);
 
    gulp.watch(['script/index.js', 'script/module/**/*.js'], ['webpack']);
@@ -165,7 +159,6 @@ gulp.task('htmlReplace', function(){
   
   return gulp.src('./dist/html/**/*.html', {base: '.'})
              .pipe(revReplace({manifest: manifest}))
-             // .pipe(prefix(cdnPath, null, '{{'))
              .pipe(replace(/([href|src]+?\=[\"\'])(\.\.)(\/[script|style|image]+)/gi, function ($0, $1, $2, $3) {
                 return $1 + cdnPath + $3;
              }))
