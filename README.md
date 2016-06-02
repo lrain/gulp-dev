@@ -10,8 +10,12 @@ npm install
 ## 配置
 
 package.json
+
 配置project属性为当前开发项目名称，该名称对应cdn发布目录名
+
 例如：project = xxxxx, cdn地址 http://img2.cache.netease.com/liveshow/project/xxxxx/
+
+配置 sftp.auth.user.username、 sftp.auth.user.password, ftp 用户名 密码
 
 ## 开发模式 
 

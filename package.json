@@ -3,11 +3,11 @@
   "version": "0.0.1",
   "description": "bobo-yeoman",
   "project": "liveRoom",
-  "cdnDomain": "http://file.ws.126.net",
-  "cdnDomain2": "http://img2.cache.netease.com",
+  "cdnDomain2": "http://file.ws.126.net",
+  "cdnDomain": "http://img4.cache.netease.com",
   "sftp": {
     "auth": {
-      "host": "61.135.251.56",
+      "host": "61.135.251.132",
       "port": 16321,
       "authKey": "key1",
       "secure": true,

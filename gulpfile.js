@@ -126,8 +126,8 @@ gulp.task('deploy', function (done) {
       ['rev'],
       ['htmlReplace'],
       ['cssReplace'],
-      // ['sftp:files'],
-      // ['sftp:upload'],
+      ['sftp:files'],
+      ['sftp:upload'],
       ['webserver:deploy'],
    done);
 });
