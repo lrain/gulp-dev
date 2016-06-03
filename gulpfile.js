@@ -10,14 +10,19 @@ var gutil = require('gulp-util');
 var spritesmith = require('gulp.spritesmith');
 var del = require('del');
 var gulpif = require('gulp-if');
+var beautify = require('gulp-beautify');
 var less = require('gulp-less');
 var watch = require('gulp-watch');
 var connect = require('gulp-connect');
 var webpack = require('webpack-stream');
+var named = require('vinyl-named');
 var uglify = require('gulp-uglify');
 var cssmin = require('gulp-cssmin');
 var htmlmin = require('gulp-htmlmin');
 var imagemin = require('gulp-imagemin');
+var sourcemaps = require('gulp-sourcemaps');
+var autoprefixer = require('gulp-autoprefixer');
+var size = require('gulp-size');
 var rev = require('gulp-rev');
 var revReplace = require('gulp-rev-replace');
 var print = require('gulp-print');
@@ -27,12 +32,18 @@ var Ftp = require('ftp');
 var Pem = require('pem');
 var slash = require('slash');
 var debug = require('gulp-debug');
-
 var packageJson = require('./package.json');
+var CONFIG = {
+   isDebug: false,
+   isPreview: false,
+   isDeploy: false
+};
 
-var projectDirPath = packageJson.sftp.dirPath + packageJson.project;
+var projectDirPath = packageJson.sftp.dirPath + packageJson.project + '/';
 
 var cdnPath = packageJson.cdnDomain + projectDirPath;
+
+console.log('cdnPath = ' + cdnPath);
 
 gulp.task('sprite', function() {
    var spriteOptions = require('./gulp/options/sprites')();
@@ -40,27 +51,44 @@ gulp.task('sprite', function() {
       var item = spriteOptions[key];
       // console.log('--------------------------------------------');
       // console.log(item);
-      var spriteData = gulp.src(item.src).pipe(spritesmith(item));
 
-      spriteData.img.pipe(gulp.dest('image'));
-      spriteData.css.pipe(gulp.dest('less'));
+      gulp.src(item.src)
+          .pipe(spritesmith(item))
+          .pipe(gulp.dest('./'));
    });
 });
+
+var AUTOPREFIXER_BROWSERS = [
+   'ie >= 6',
+   'ie_mob >= 6',
+   'ff >= 30',
+   'chrome >= 34',
+   'safari >= 7',
+   'opera >= 23',
+   'ios >= 7',
+   'android >= 4.4',
+   'bb >= 10'
+];
 
 gulp.task('less', function() {
    return gulp.src('less/**/*.less')
                .pipe(less({
                   modifyVars: {
-                     "imgPath": "\"/image\""
+                     'imgPath': '"/image"'
                   }
                }))
+               .pipe(sourcemaps.init())
+               .pipe(autoprefixer({browsers: AUTOPREFIXER_BROWSERS}))
+               .pipe(sourcemaps.write('.'))
                .pipe(gulp.dest('style'))
                .pipe(connect.reload());
 });
 
 gulp.task('webpack', function() {
-   return gulp.src('script/page/index.js')
-              .pipe(webpack(require('./gulp/webpack.config.js')))
+   return gulp.src('script/page/*.js')
+              .pipe(named())
+              // .pipe(webpack(require('./gulp/webpack.config.js')))
+              .pipe(webpack())
               .pipe(gulp.dest('script/dest/'))
               .pipe(connect.reload());
 });
@@ -68,7 +96,7 @@ gulp.task('webpack', function() {
 gulp.task('watch', function () {
    gulp.watch('less/**/*.less', ['less']);
 
-   gulp.watch(['script/index.js', 'script/module/**/*.js'], ['webpack']);
+   gulp.watch(['script/page/**/*.js', 'script/module/**/*.js'], ['webpack']);
 });
 
 gulp.task('webserver:dev', function() {
@@ -106,6 +134,7 @@ gulp.task('clean', function (cb) {
 });
 
 gulp.task('dev', function (done) {
+   CONFIG['isDebug'] = true;
    runSequence(
       ['clean'],
       ['sprite'],
@@ -116,7 +145,24 @@ gulp.task('dev', function (done) {
    done);
 });
 
+gulp.task('preview', function (done) {
+   CONFIG['isPreview'] = true;
+   runSequence(
+      ['clean'],
+      ['sprite'],
+      ['less'],
+      ['webpack'],
+      ['minifyHtml'],
+      ['rev'],
+      ['htmlReplace'],
+      ['cssReplace'],
+      ['replaceTmpl'],
+      ['webserver:deploy'],
+   done);
+});
+
 gulp.task('deploy', function (done) {
+   CONFIG['isDeploy'] = true;
    runSequence(
       ['clean'],
       ['sprite'],
@@ -137,21 +183,29 @@ gulp.task('rev', function(){
    var jsFilter = filter('**/*.js', { restore: true });
    var imageFilter = filter('**/*.png', { restore: true });
 
-   return gulp.src(['style/**/*', 'script/dest/**/*', 'image/page/**/*', 'image/sprites/**/*'], {base: '.'})
+   var condition = function () { // TODO: add business logic
+      return true;
+   }
+
+   return gulp.src(['style/page/**/*.css', 'script/dest/**/*', 'image/page/**/*', 'image/sprites/**/*'], {base: '.'})
               .pipe(cssFilter)
               // .pipe(print())
-              .pipe(cssmin())
+              .pipe(cssmin({
+                 keepBreaks: true
+              }))
               .pipe(cssFilter.restore)
               .pipe(jsFilter)
-              .pipe(uglify())
+              // .pipe(uglify())
+              .pipe(gulpif(condition, uglify(), beautify()))
               .pipe(jsFilter.restore)
               .pipe(imageFilter)
               .pipe(imagemin())
+              .pipe(size({title: 'source images'}))
               .pipe(imageFilter.restore)
               .pipe(rev())
               .pipe(gulp.dest('dist'))
               .pipe(rev.manifest())
-              .pipe(gulp.dest('dist'))
+              .pipe(gulp.dest('dist'));
 });
 
 gulp.task('htmlReplace', function(){
@@ -159,10 +213,27 @@ gulp.task('htmlReplace', function(){
   
   return gulp.src('./dist/html/**/*.html', {base: '.'})
              .pipe(revReplace({manifest: manifest}))
-             .pipe(replace(/([href|src]+?\=[\"\'])(\.\.)(\/[script|style|image]+)/gi, function ($0, $1, $2, $3) {
-                return $1 + cdnPath + $3;
-             }))
+             .pipe(gulpif(CONFIG['isDeploy'], replace(/([href|src]+?\=[\"\'])\.\.\/([script|style|image]+)/gi, function ($0, $1, $2) {
+                return $1 + cdnPath + $2;
+             })))
              .pipe(gulp.dest('./'));
+});
+
+gulp.task('replaceTmpl', function(){
+   var commonHeaderCode = fs.readFileSync('./gulp/tmpl/common_header.html');
+   var commonFooterCode = fs.readFileSync('./gulp/tmpl/common_footer.html');
+   var commonLogCode = fs.readFileSync('./gulp/tmpl/common_log.html');
+   var srcStream = CONFIG['isPreview'] ? gulp.src('./dist/html/**/*.html', {base: '.'}) : gulp.src('./html/**/*.html', {base: '.'})
+  
+   return srcStream.pipe(through.obj(function(file, encode, cb) {
+                  var contents = file.contents.toString(encode);
+                  var codes = contents.replace('<!--#include virtual="/special/sp/spnav.html" -->', commonHeaderCode)
+                                      .replace('<!--#include virtual="/special/sp/foot.html" -->', commonFooterCode)
+                                      .replace('<!--#include virtual="/special/sp/tjcode.html" -->', commonLogCode);
+                  file.contents = new Buffer(codes, encode);
+                  cb(null, file, encode);
+              }))
+              .pipe(gulp.dest('./'));
 });
 
 gulp.task('cssReplace', function(){
@@ -170,7 +241,7 @@ gulp.task('cssReplace', function(){
 
   return gulp.src(['./dist/style/**/*.css'], {base: '.'})
              .pipe(revReplace({manifest: manifest}))
-             .pipe(replace('/image/', cdnPath + '/image/'))
+             .pipe(gulpif(CONFIG['isDeploy'], replace('/image/', cdnPath + 'image/')))
              .pipe(gulp.dest('./'));
 });
 
@@ -180,9 +251,7 @@ gulp.task('sftp:files', function(cb){
    return gulp.src(['./dist/style/**', './dist/script/**', './dist/image/**'])
                .pipe(through.obj(function(file, encode, cb) {
                   if (!file.isNull()) {
-                     // console.log('--------------------------------------------');
-                     // console.log(slash(path.relative(path.resolve(process.cwd(), 'dist'), file.path)));
-                     sftpFiles.push(slash(path.relative(path.resolve(process.cwd(), 'dist'), file.path)))
+                     sftpFiles.push(slash(path.relative(process.cwd(), file.path)))
                   }
                   cb(null, file, encode);
                }));
@@ -223,7 +292,7 @@ gulp.task('sftp:upload', function(cb){
                      }
                   });
                } else {
-                  ftpFiles.push(filePath.replace(projectDirPath + '/', ''));
+                  ftpFiles.push(filePath.replace(projectDirPath, ''));
                   if (!--pending) {
                      callback();
                   }
@@ -232,11 +301,11 @@ gulp.task('sftp:upload', function(cb){
          });
       };
       
-      walkInto(projectDirPath + '/', function () {
+      walkInto(projectDirPath, function () {
          var newFiles = sftpFiles.filter(function (file) {
             var flag = true;
 
-            if (ftpFiles.indexOf(file) !== -1) {
+            if (ftpFiles.indexOf(file.replace(/^dist\//i, '')) !== -1) {
                flag = false;
             }
             return flag;
@@ -251,9 +320,9 @@ gulp.task('sftp:upload', function(cb){
 
       var filesLength = newFiles.length;
       if (newFiles.length != 0) {
-         gutil.log("[INFO]" + new String(filesLength) + " 个文件需要上传.");
+         gutil.log('[INFO]' + new String(filesLength) + ' 个文件需要上传.');
          newFiles.forEach(function(file) {
-            var destPath = projectDirPath + file;
+            var destPath = projectDirPath + file.replace(/^dist\//i, '');
             ftp.mkdir(destPath.match(/(.*)\/.*/)[1], true, function() {
                ftp.put(file, destPath, function(err) {
                   if (err) {
@@ -270,8 +339,8 @@ gulp.task('sftp:upload', function(cb){
             })
          });
       } else {
-         gutil.log('[INFO] no file to upload!'.green)
          ftp.end();
+         gutil.log('[INFO] no file to upload!'.green)
          cb();
       }
    };

@@ -1,1 +1,1 @@
-require('../module/myModule.js')();
+require('../module/index.js')();
