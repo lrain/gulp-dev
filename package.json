@@ -3,11 +3,10 @@
   "version": "0.0.1",
   "description": "bobo-yeoman",
   "project": "test",
-  "cdnDomain2": "http://file.ws.126.net",
-  "cdnDomain": "http://img2.cache.netease.com",
+  "cdnDomain": "",
   "sftp": {
     "auth": {
-      "host": "61.135.251.132",
+      "host": "",
       "port": 16321,
       "authKey": "key1",
       "secure": true,
