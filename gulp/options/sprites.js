@@ -11,7 +11,7 @@ module.exports = function() {
    var REG_REPLACE_IMG_FORMAT = /\.[a-zA-Z]+$/;
 
    var commonOptions = {
-      cssTemplate: './lessConfig/less.template.mustache',
+      cssTemplate: './gulp/lessConfig/less.template.mustache',
       engine: 'pixelsmith', ///pixelsmith,pngsmith
       algorithm: 'binary-tree',
       padding: 10,
@@ -72,28 +72,15 @@ module.exports = function() {
                   item.isNormal = true;
                }
             });
-            // itemNums--;
-            // totalArray = _.union(totalArray, items);
-            // if (itemNums === -1) {
-            //    createIncludeSprites();
-            // }
          }
       }
    };
 
-   function createIncludeSprites () {
-      var _mustache = fs.readFileSync('./lessConfig/less.include.mustache', 'utf-8');
-      var output = Mustache.render(_mustache, {
-         items: totalArray
-      });
-      fs.writeFile('../less/include/sprites.less', output);
-   }
-
    var Configs = {
       icon: {
-         src: '../image/icon/**/*.png',
-         imgName: '../image/sprites/icon.png',
-         cssName: '../less/sprite/icon.less',
+         src: './image/icon/**/*.png',
+         imgName: './image/sprites/icon.png',
+         cssName: './less/sprite/icon.less',
          algorithm: 'top-down',
          cssOpts: {
             key: 'icon'

@@ -32,6 +32,18 @@ gulp dev
 - 访问http://127.0.0.1:8081/html 能浏览html目录下文件
 - 开发过程中修改less、script文件会及时编译，浏览器会自动更新，不需按F5刷新
 
+## 发布页面 
+
+```
+gulp preview
+```
+
+- 确认页面可以发布上线
+- 合并sprite，编译less，webpack，生成带md5戳文件
+- 修改html、css文件中静态资源地址为dist目录带md5戳文件
+- 替换cms 通用ssi文件地址为tmpl目录对应文件
+- 默认起本地 http://127.0.0.1:8081/ 服务
+- 访问http://127.0.0.1:8081/html 能浏览dist/html目录下文件
 
 ## 发布页面 
 
