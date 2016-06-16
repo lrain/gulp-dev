@@ -1,0 +1,163 @@
+<link rel="stylesheet" href="http://img1.cache.netease.com/liveshow/static0806/style/cms.bd55ae79.css" />
+<!--[if lt IE 9]> <script type="text/javascript"> (function (){ var tag = ['section','header','footer','nav','hgroup','article','aside'],i=0; for(i in tag){ document.createElement(tag[i]); } })();</script><![endif]-->
+<script src="http://www.bobo.com/public/getUserCard" charset="utf-8"></script>
+<script src="http://img1.cache.netease.com/bobo/sp/jquery-1.8.3.min.js"></script>
+<header id="header" class="header header-loaded" data-keyfrom="navi">
+   <i class="ui-header-border"></i>
+   <h1 class="header-logo">
+      <a href="/" title="BoBo">BoBo</a>
+   </h1>
+   <div class="header-user">
+      <a id="state1" class="header-apply-btn" href="/anchor/transcribe" target="_blank" data-method="live">开始直播</a>
+      <a id="state2" class="header-apply-btn" href="/anchor/apply" target="_blank" data-method="apply">申请入驻</a>
+      <a id="state3" class="header-apply-btn js-need-login" href="javascript:;">申请入驻</a>
+      <div id="loginInfo2" class="header-info" data-keyfrom="user" style="display:none">
+         <div class="header-info-inner clearfix">
+            <a id="loginInfoShow" class="header-info-show" href="/user" data-keyfrom="userfloat">
+               <img id="userAvatar" src="http://imgsize.ph.126.net/?imgurl=http://img2.cache.netease.com/bobo/image/avatar150.png_32x32x1x85.jpg" width="32" height="32"/>
+            </a>
+            <a id="msgNode" class="header-info-news" href="/message">
+               <span></span><em class="icon-ring"></em>
+               <em id="messageCount" class="icon-msg" data-noCount="true" style="display: none;"></em>
+            </a>
+         </div>
+         <div id="loginEdit" class="header-info-edit">
+            <form id="nameEditForm">
+               <p class="cDGray">修改昵称</p>
+               <p id="repeatErrorTips" class="s-tip"><em class="icon-error"></em>此昵称已经被小伙伴抢了</p>
+               <p id="illegalErrorTip" class="s-tip"><em class="icon-error"></em>涉及敏感词语，请重新编辑</p>
+               <p id="errorTips" class="s-tip"><em class="icon-error"></em>昵称长度要在2-10个字之间</p>
+               <p><input id="nickNameNav" type="text" class="s-edit" /></p>
+               <div class="clearfix">
+                  <a id="loginEditSubmit" class="btn btn-orange" href="javascript:;" title="确定">确定</a>
+                  <a id="loginEditCancel" class="btn btn-darkGray" href="javascript:;" title="取消">取消</a>
+               </div>
+            </form>
+         </div>
+         <div id="loginUserCenter" class="header-info-user" data-keyfrom="user">
+            <div class="s-wrapper clearfix">
+               <a class="fl avatar-m" href="/user"><img id="user_icon" src="http://imgsize.ph.126.net/?imgurl=http://img2.cache.netease.com/bobo/image/avatar150.png_50x50x1x85.jpg" /></a>
+               <em class="s-wealth"></em>
+               <h5 id="userNickName"></h5>
+               <h5><a class="cOrange" href="/pay">充值</a></h5>
+               <p>
+                  <em class="icon-bobi"></em><span id="loginCoin"></span><em class="icon-bojuan"></em><span id="loginBoquan"></span>
+               </p>
+            </div>
+            <ul>
+               <li><a href="/user">基本信息</a></li>
+               <li><a href="/user/follows">我的关注</a></li>
+               <li><a href="/user/acGiftList">我的礼物</a></li>
+               <li><a href="/user/tools">我的道具</a></li>
+               <li><a href="/pay/costhistory">消费记录</a></li>
+               <li><a href="/user/password?action=user">密码管理</a></li>
+               <li class="js-spnav-nick"><a id="iconLogined" href="javascript:;">修改昵称</a></li>
+               <li><a id="logout" href="http://reg.163.com/Logout.jsp?url=www.bobo.com">退出</a></li>
+            </ul>
+         </div>
+         <div style="z-index:100;display:none" id="mesReminder"></div>
+      </div>
+      <div id="loginInfo" class="header-info" data-keyfrom="user">
+         <div class="header-info-user2">
+            <em class="icon-user"></em><a href="javascript:;" class="js-need-login" data-keyfrom="login">登录</a><a href="javascript:;" class="js-need-reg" data-keyfrom="reg">注册</a>
+         </div>
+      </div>
+      <div class="wgt-search js-homeSearch-top clearfix" id="searchWraper">
+         <input id="searchInput" class="wgt-search-input" value="昵称 / 房号 / 公会" type="text" autocomplete="off" />
+         <a id="searchBtn" class="wgt-search-btn" href="javascript:;"><em class="icon-search"></em></a>
+         <div id="searchTips" class="wgt-search-input wgt-search-tips" style="position:absolute;top:0;left:0"></div>
+      </div>
+   </div>
+   <div class="header-wrapper">
+      <div class="header-inner">
+         <nav class="header-navi js-navi">
+            <a href="/">首页</a>
+            <a href="/activity">活动</a>
+            <a href="/rank">排行榜</a>
+            <a href="/family">公会</a>
+            <a href="/faction">帮派</a>
+            <a href="/shop">商城</a>
+         </nav>
+         <div class="header-download">
+            <a class="js-download-btn header-download-btn" href="javascript:;"><em class="icon-app"></em>下载<em class="s-dot"></em></a>
+            <a class="header-download-btn s-love" href="http://love.bobo.com" target="_blank"><em class="icon-love"></em>交友</a>
+            <a class="js-need-login header-download-btn s-puke" href="/game/holdem" target="_blank"><em class="icon-puke"></em>德扑</a>
+            <ul class="js-download-wrapper clearfixed">
+               <li>
+                  <em class="icon-download-top"></em>
+                  <a class="s-app" href="http://www.bobo.com/special/android/?f=bobohome" target="_blank" title="BoBo APP"></a>
+                  <p>BoBo APP</p>
+                  <a class="s-btn" href="http://www.bobo.com/special/android/?f=bobohome" target="_blank">下载</a>
+               </li>
+               <li>
+                  <a class="s-pc" href="http://www.bobo.com/special/bobopc/" target="_blank" title="BoBo PC版"></a>
+                  <p>BoBo PC版</p>
+                  <a class="s-btn" href="http://www.bobo.com/special/bobopc/" target="_blank">下载</a>
+               </li>
+               <li class="last">
+                  <a class="s-zhibo" href="http://www.bobo.com/zhibo?from=mainnev" target="_blank" title="手机直播 APP"></a>
+                  <p>手机直播 APP</p>
+                  <a class="s-btn" href="http://www.bobo.com/zhibo?from=mainnev" target="_blank">下载</a>
+               </li>
+            </ul>
+         </div>
+     </div>
+   </div>
+</header>
+<script type="text/javascript">
+   var userId = userJson.userCard.userId,
+       CONFIG = {},
+       user_icon_1 = "http://imgsize.ph.126.net/?imgurl=" + userJson.userCard.avatar + "_50x50x1x85.jpg",
+       user_icon_2 = "http://imgsize.ph.126.net/?imgurl=" + userJson.userCard.avatar + "_32x32x1x85.jpg";
+   if(userJson.userCard.userIdStr == "null") {
+      CONFIG['islogined'] = false;
+      jQuery("#loginInfo2").hide();
+      jQuery("#loginInfo").show();
+      jQuery("#state1").hide();
+      jQuery("#state2").hide();
+      jQuery("#state3").show();
+   } else {
+      CONFIG['islogined']   = true;
+      CONFIG['nick']        = userJson.userCard.nickName;
+      CONFIG['userId']      = userJson.userCard.userId;
+      CONFIG['avatar']      = userJson.userCard.avatar;
+      CONFIG['isAnchor']    = userJson.userCard.is_Anchor;
+      CONFIG['wealthLevel'] = userJson.userCard.wealthLevel;
+      CONFIG['cCurrency']   = userJson.userCard.cCurrency;
+      CONFIG['email']       = userJson.userCard.email;
+      //CONFIG['isLeader']  = false;
+      //CONFIG['isAdmin']   = false;
+      //CONFIG['hasDrawed'] = false;
+      //CONFIG['isFirstLogin'] = false;
+      $(document).ready(function() {
+         var medal_w = "wealth-" + userJson.userCard.wealthLevel;
+         jQuery("#user_icon").attr("src",user_icon_1);
+         jQuery("#userAvatar").attr("src",user_icon_2);
+         jQuery("#userNickName").html(userJson.userCard.nickName);
+         jQuery(".s-wealth").addClass(medal_w);
+         jQuery("#loginCoin").html(userJson.userCard.cCurrency);
+         jQuery("#loginBoquan").html(userJson.userCard.boquan);
+         jQuery("#user_nick").html(userJson.userCard.nickName);
+         jQuery("#user_id").val(userJson.userCard.userIdStr);
+         jQuery("#loginInfo2").show();
+         jQuery("#loginInfo").hide();
+         //======监管开关=======
+         var publishSwitch = userJson.publishSwitch || 0;
+         publishSwitch && jQuery('.js-spnav-nick').hide();
+         //======/监管开关=======
+         if(userJson.userCard.is_Anchor){
+            jQuery("#state1").show();
+            jQuery("#state2").hide();
+            jQuery('#state3').hide();
+         }else{
+            jQuery("#state1").hide();
+            jQuery("#state2").show();
+            jQuery('#state3').hide();
+         }
+      });
+   }
+   jQuery.getScript('http://webzj.reg.163.com/webapp/javascript/page/json3.js');
+   jQuery.getScript('http://webzj.reg.163.com/webapp/javascript/message.js?_t=1448852183919');
+</script>
+<script src="http://img1.cache.netease.com/liveshow/static0806/script/page/common.a8167de7.js" type="text/javascript"></script>
+<script data-main="page/navonly" src="http://img1.cache.netease.com/liveshow/static0806/script/page/navonly.d77267bc.js" type="text/javascript"></script>
