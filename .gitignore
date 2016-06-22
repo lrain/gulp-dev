@@ -1,6 +1,8 @@
 node_modules
 dist
+dest
 .tmp
+.map
 npm-debug.log
 images
 bower_components

@@ -23,6 +23,7 @@ var imagemin = require('gulp-imagemin');
 var sourcemaps = require('gulp-sourcemaps');
 var autoprefixer = require('gulp-autoprefixer');
 var size = require('gulp-size');
+var useref = require('gulp-useref');
 var rev = require('gulp-rev');
 var revReplace = require('gulp-rev-replace');
 var print = require('gulp-print');
@@ -32,6 +33,8 @@ var Ftp = require('ftp');
 var Pem = require('pem');
 var slash = require('slash');
 var debug = require('gulp-debug');
+var cmdModule = require('./gulp/lib/cmdModule')();
+var UglifyJS = require('uglify-js');
 var packageJson = require('./package.json');
 var CONFIG = {
    isDebug: false,
@@ -85,7 +88,7 @@ gulp.task('less', function() {
 });
 
 gulp.task('webpack', function() {
-   return gulp.src('script/page/*.js')
+   return gulp.src('script/page_webpack/*.js')
               .pipe(named())
               // .pipe(webpack(require('./gulp/webpack.config.js')))
               .pipe(webpack())
@@ -115,21 +118,15 @@ gulp.task('webserver:deploy', function() {
    });
 });
 
-gulp.task('minifyHtml', function() {
-   return gulp.src('html/*.html')
-              .pipe(htmlmin({
-                  minifyCSS: true,
-                  minifyJS: true,
-                  collapseWhitespace: false
-               }))
-              .pipe(gulp.dest('dist/html'));
-});
-
 gulp.task('clean', function (cb) {
    return del([
       'dist/**',
+      'html/dest/**',
+      'image/sprites/**',
+      'less/sprite/**',
       'style/**',
       'script/dest/**',
+      'test/**'
    ], {force: true}, cb);
 });
 
@@ -139,7 +136,7 @@ gulp.task('dev', function (done) {
       ['clean'],
       ['sprite'],
       ['less'],
-      ['webpack'],
+      // ['webpack'],
       ['webserver:dev'],
       ['watch'],
    done);
@@ -151,8 +148,10 @@ gulp.task('preview', function (done) {
       ['clean'],
       ['sprite'],
       ['less'],
-      ['webpack'],
+      // ['webpack'],
+      ['useref'],
       ['minifyHtml'],
+      ['combo'],
       ['rev'],
       ['htmlReplace'],
       ['cssReplace'],
@@ -167,8 +166,10 @@ gulp.task('deploy', function (done) {
       ['clean'],
       ['sprite'],
       ['less'],
-      ['webpack'],
+      // ['webpack'],
+      ['useref'],
       ['minifyHtml'],
+      ['combo'],
       ['rev'],
       ['htmlReplace'],
       ['cssReplace'],
@@ -176,6 +177,34 @@ gulp.task('deploy', function (done) {
       ['sftp:upload'],
       ['webserver:deploy'],
    done);
+});
+
+gulp.task('useref', function() {
+   var htmlFilter = filter('**/*.html', { restore: true });
+   var jsFilter = filter('**/*.js', { restore: true });
+
+   return gulp.src('html/*.html')
+              .pipe(useref({
+                 // noAssets: true,
+              }))
+              .pipe(jsFilter)
+              .pipe(gulp.dest('./script'))
+              .pipe(jsFilter.restore)
+              // .pipe(print())
+              .pipe(htmlFilter)
+              // .pipe(gulpif('*.js', uglify()))
+              // .pipe(gulpif('*.css', cssmin()))
+              .pipe(gulp.dest('./html/dest'));
+});
+
+gulp.task('minifyHtml', function() {
+   return gulp.src('./html/dest/**/*.html')
+              .pipe(htmlmin({
+                  minifyCSS: true,
+                  minifyJS: true,
+                  collapseWhitespace: false
+               }))
+              .pipe(gulp.dest('dist/html'));
 });
 
 gulp.task('rev', function(){
@@ -186,17 +215,20 @@ gulp.task('rev', function(){
    var condition = function () { // TODO: add business logic
       return true;
    }
-
-   return gulp.src(['style/page/**/*.css', 'script/dest/**/*', 'image/page/**/*', 'image/sprites/**/*'], {base: '.'})
+   // 'script/page/**/*.js', 
+   return gulp.src(['style/page/**/*.css', 'script/dest/**/*.js', 'image/page/**/*', 'image/sprites/**/*'], {base: '.'})
               .pipe(cssFilter)
               // .pipe(print())
               .pipe(cssmin({
-                 keepBreaks: true
+                 keepBreaks: !CONFIG['isDeploy']
               }))
               .pipe(cssFilter.restore)
               .pipe(jsFilter)
-              // .pipe(uglify())
-              .pipe(gulpif(condition, uglify(), beautify()))
+              .pipe(gulpif(CONFIG['isDeploy'], uglify({
+                 output: {
+                    ascii_only: true
+                 }
+              }), beautify()))
               .pipe(jsFilter.restore)
               .pipe(imageFilter)
               .pipe(imagemin())
@@ -220,11 +252,11 @@ gulp.task('htmlReplace', function(){
 });
 
 gulp.task('replaceTmpl', function(){
-   var commonHeaderCode = fs.readFileSync('./gulp/tmpl/common_header.html');
-   var commonFooterCode = fs.readFileSync('./gulp/tmpl/common_footer.html');
-   var commonLogCode = fs.readFileSync('./gulp/tmpl/common_log.html');
+   var commonHeaderCode = fs.readFileSync('./gulp/tmpl/common_header.html', 'utf-8');
+   var commonFooterCode = fs.readFileSync('./gulp/tmpl/common_footer.html', 'utf-8');
+   var commonLogCode = fs.readFileSync('./gulp/tmpl/common_log.html', 'utf-8');
    var srcStream = CONFIG['isPreview'] ? gulp.src('./dist/html/**/*.html', {base: '.'}) : gulp.src('./html/**/*.html', {base: '.'})
-  
+
    return srcStream.pipe(through.obj(function(file, encode, cb) {
                   var contents = file.contents.toString(encode);
                   var codes = contents.replace('<!--#include virtual="/special/sp/spnav.html" -->', commonHeaderCode)
@@ -256,6 +288,56 @@ gulp.task('sftp:files', function(cb){
                   cb(null, file, encode);
                }));
 });
+
+gulp.task('combo', function(cb){
+   var loader = fs.readFileSync(path.resolve(__dirname, './gulp', 'lib', 'loader.js'), 'utf-8');
+   var loaderCode = cmdModule.generateJSCode(UglifyJS.parse(loader), 'lib/loader', false).code;
+   var isDebug = true;
+   var cwd = '/script/';
+   var modulePathIsRelativePath = false;
+   // console.log(loaderCode);
+
+   return gulp.src(['./script/page/*.js'])
+               .pipe(through.obj(function(file, encode, cb) {
+                  if (!file.isNull()) {
+                     var jsFile = slash(file.path);
+                     var root = slash(__dirname) + cwd;
+                     var newLine = '';
+                     if (isDebug) {
+                        newLine = '\r\n';
+                     }
+                     var modName = jsFile.replace(root, '').replace(/\.js$/, '');
+                     gutil.log('Page ' + modName.cyan + ' created.');
+
+                     var depsQueue = [];
+                     var modules = {};
+                     cmdModule.moduleWalk(modName, root, modulePathIsRelativePath, function(modName, ast) {
+                        if (!modules[modName]) {
+                           var result = cmdModule.generateJSCode(ast, modName, false);
+                           modules[modName] = result.code;
+                           console.log('*******************************************');
+                           console.log(modules[modName]);
+                        }
+                     }, depsQueue);
+
+                     depsQueue = depsQueue.sort();
+                     depsQueue.push(modName);
+
+                     // console.log(depsQueue);
+
+                     var finalCode = depsQueue.reduce(function(memo, modName) {
+                        return memo + modules[modName] + newLine;
+                     }, loaderCode + newLine);
+
+                     // var destFile = path.normalize(file.dest);
+
+                     file.contents = new Buffer(finalCode, encode);
+                  }
+                  cb(null, file, encode);
+               }))
+               .pipe(gulp.dest('./script/dest/page'));
+});
+
 
 gulp.task('sftp:upload', function(cb){
    var ftp = new Ftp();

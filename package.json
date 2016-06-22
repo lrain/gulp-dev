@@ -3,11 +3,12 @@
   "version": "0.0.1",
   "description": "bobo-yeoman",
   "project": "test",
+  "cdnDomain2": "",
   "cdnDomain": "",
   "sftp": {
     "auth": {
       "host": "",
-      "port": 16321,
+      "port": ,
       "authKey": "key1",
       "secure": true,
       "user": {
@@ -59,6 +60,8 @@
     "run-sequence": "^1.1.5",
     "slash": "^1.0.0",
     "through2": "^2.0.1",
+    "uglify-js": "^2.6.2",
+    "underscore": "^1.8.3",
     "url2": "^1.0.4",
     "vinyl-named": "^1.1.0",
     "webpack": "^1.12.14",
