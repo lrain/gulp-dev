@@ -90,8 +90,7 @@ gulp.task('less', function() {
 gulp.task('webpack', function() {
    return gulp.src('script/page_webpack/*.js')
               .pipe(named())
-              // .pipe(webpack(require('./gulp/webpack.config.js')))
-              .pipe(webpack())
+              .pipe(webpack(require('./webpack.config.js')))
               .pipe(gulp.dest('script/dest/'))
               .pipe(connect.reload());
 });
@@ -99,7 +98,7 @@ gulp.task('webpack', function() {
 gulp.task('watch', function () {
    gulp.watch('less/**/*.less', ['less']);
 
-   gulp.watch(['script/page/**/*.js', 'script/module/**/*.js'], ['webpack']);
+   gulp.watch(['script/page_webpack/**/*.js', 'script/module/**/*.js'], ['webpack']);
 });
 
 gulp.task('webserver:dev', function() {
