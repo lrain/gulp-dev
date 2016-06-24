@@ -135,7 +135,7 @@ gulp.task('dev', function (done) {
       ['clean'],
       ['sprite'],
       ['less'],
-      // ['webpack'],
+      ['webpack'],
       ['webserver:dev'],
       ['watch'],
    done);

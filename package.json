@@ -8,7 +8,7 @@
   "sftp": {
     "auth": {
       "host": "",
-      "port": ,
+      "port": 16321,
       "authKey": "key1",
       "secure": true,
       "user": {
@@ -20,7 +20,8 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "gulp dev"
   },
   "author": "",
   "license": "ISC",
