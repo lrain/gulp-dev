@@ -5,6 +5,7 @@ var $ = require('gulp-load-plugins')();
 var colors = require('colors');
 var runSequence = require('run-sequence')
 var through = require('through2');
+var concat = require('gulp-concat');
 var filter = require('gulp-filter');
 var gutil = require('gulp-util');
 var spritesmith = require('gulp.spritesmith');
@@ -35,6 +36,7 @@ var slash = require('slash');
 var debug = require('gulp-debug');
 var cmdModule = require('./gulp/lib/cmdModule')();
 var UglifyJS = require('uglify-js');
+var merge = require('merge-stream');
 var packageJson = require('./package.json');
 var CONFIG = {
    isDebug: false,
@@ -48,17 +50,21 @@ var cdnPath = packageJson.cdnDomain + projectDirPath;
 
 console.log('cdnPath = ' + cdnPath);
 
-gulp.task('sprite', function() {
+gulp.task('sprite', function(cb) {
    var spriteOptions = require('./gulp/options/sprites')();
+   var item = null, spriteData = null, imgStream = null, cssStream = null;
    Object.keys(spriteOptions).map(function(key, index) {
-      var item = spriteOptions[key];
-      // console.log('--------------------------------------------');
+      // console.log('------------------------------------------------');
+      item = spriteOptions[key];
       // console.log(item);
 
-      gulp.src(item.src)
-          .pipe(spritesmith(item))
-          .pipe(gulp.dest('./'));
+      spriteData = gulp.src(item.src)
+                       .pipe(spritesmith(item));
+      imgStream = spriteData.img.pipe(gulp.dest('./'));
+      cssStream = spriteData.css.pipe(gulp.dest('./'));
    });
+
+   return merge(imgStream, cssStream);
 });
 
 var AUTOPREFIXER_BROWSERS = [
@@ -77,7 +83,7 @@ gulp.task('less', function() {
    return gulp.src('less/**/*.less')
                .pipe(less({
                   modifyVars: {
-                     'imgPath': '"/image"'
+                     // 'imgPath': '"/image"'
                   }
                }))
                .pipe(sourcemaps.init())
@@ -132,12 +138,12 @@ gulp.task('clean', function (cb) {
 gulp.task('dev', function (done) {
    CONFIG['isDebug'] = true;
    runSequence(
-      ['clean'],
-      ['sprite'],
-      ['less'],
-      ['webpack'],
-      ['webserver:dev'],
-      ['watch'],
+      'clean',
+      'sprite',
+      'less',
+      'webpack',
+      'webserver:dev',
+      'watch',
    done);
 });
 

@@ -21,7 +21,7 @@ module.exports = function() {
       },
       cssHandlebarsHelpers: {
          parseData: function(context, options) {
-            console.log('==================================================================================');
+            // console.log('==================================================================================');
             // console.log(context);
             // {
             //    name: 'add',
@@ -84,6 +84,15 @@ module.exports = function() {
          algorithm: 'top-down',
          cssOpts: {
             key: 'icon'
+         }
+      },
+      wealth: {
+         src: './image/wealth/**/*.png',
+         imgName: './image/sprites/wealth.png',
+         cssName: './less/sprite/wealth.less',
+         algorithm: 'top-down',
+         cssOpts: {
+            key: 'wealth'
          }
       }
    };

@@ -1,0 +1,41 @@
+.wealth-0,
+.wealth-1,
+.wealth-2,
+.wealth-3,
+.wealth-4,
+.wealth-5 {
+  background-image: url("/image/sprites/wealth.png");
+  display: inline-block;
+}
+.wealth-0 {
+  background-position: 0px 0px;
+  width: 24px;
+  height: 20px;
+}
+.wealth-1 {
+  background-position: 0px -30px;
+  width: 24px;
+  height: 20px;
+}
+.wealth-2 {
+  background-position: 0px -60px;
+  width: 24px;
+  height: 20px;
+}
+.wealth-3 {
+  background-position: 0px -90px;
+  width: 24px;
+  height: 20px;
+}
+.wealth-4 {
+  background-position: 0px -120px;
+  width: 24px;
+  height: 20px;
+}
+.wealth-5 {
+  background-position: 0px -150px;
+  width: 24px;
+  height: 20px;
+}
+
+/*# sourceMappingURL=wealth.css.map */
