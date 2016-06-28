@@ -277,7 +277,9 @@ gulp.task('cssReplace', function(){
 
   return gulp.src(['./dist/style/**/*.css'], {base: '.'})
              .pipe(revReplace({manifest: manifest}))
-             .pipe(gulpif(CONFIG['isDeploy'], replace('/image/', cdnPath + 'image/')))
+             .pipe(gulpif(CONFIG['isDeploy'], replace(/[\.\/]*\/(image)/gi, function ($0, $1) {
+                return cdnPath + $1;
+             })))
              .pipe(gulp.dest('./'));
 });
 
@@ -381,8 +383,10 @@ gulp.task('sftp:upload', function(cb){
          gutil.log('[INFO] ftp list src = ' + src);
 
          ftp.list(src, function (err, files) {
-            var pending = files.length;
-            if (!pending) return callback();
+            var pending = typeof files !== 'undefined' ? files.length : 0;
+            if (!pending) {
+               return callback();
+            }
             files.forEach(function (item) {
                var filePath = src + item.name;
                if (item.type === 'd') {
@@ -413,7 +417,7 @@ gulp.task('sftp:upload', function(cb){
             return flag;
          });
          // console.log(newFiles);
-         uploadFiles(newFiles);
+         // uploadFiles(newFiles);
       });
    }
 
@@ -433,13 +437,14 @@ gulp.task('sftp:upload', function(cb){
                ftp.put(file, destPath, function(err) {
                   if (err) {
                      gutil.log(err);
-                  }
-                  i++;
-                  gutil.log('[INFO] File ' + destPath.cyan + ' uploaded.' + ' 还有 ' + new String(filesLength - i).cyan + ' 个文件需要上传.');
-                  if (i == filesLength) {
-                     ftp.end();
-                     gutil.log('upload Done!'.green)
-                     cb();
+                  } else {
+                     i++;
+                     gutil.log('[INFO] File ' + destPath.cyan + ' uploaded.' + ' 还有 ' + new String(filesLength - i).cyan + ' 个文件需要上传.');
+                     if (i == filesLength) {
+                        ftp.end();
+                        gutil.log('upload Done!'.green)
+                        cb();
+                     }
                   }
                });
             });
