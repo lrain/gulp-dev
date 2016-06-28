@@ -15,11 +15,10 @@
 }
 body {
   background: transparent url('/image/page/520.jpg') no-repeat 0 0;
+  font-size: 14px;
 }
 h1 {
   background: transparent url('/image/page/top.png') no-repeat 0 0;
   color: #FF0000;
   height: 59px;
 }
-
-/*# sourceMappingURL=index.css.map */

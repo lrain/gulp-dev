@@ -36,7 +36,7 @@ var slash = require('slash');
 var debug = require('gulp-debug');
 var cmdModule = require('./gulp/lib/cmdModule')();
 var UglifyJS = require('uglify-js');
-var merge = require('merge-stream');
+// var merge = require('merge-stream');
 var packageJson = require('./package.json');
 var CONFIG = {
    isDebug: false,
@@ -52,19 +52,18 @@ console.log('cdnPath = ' + cdnPath);
 
 gulp.task('sprite', function(cb) {
    var spriteOptions = require('./gulp/options/sprites')();
-   var item = null, spriteData = null, imgStream = null, cssStream = null;
+   var item = {}, spriteData = null;
    Object.keys(spriteOptions).map(function(key, index) {
-      // console.log('------------------------------------------------');
       item = spriteOptions[key];
+      // console.log('------------------------------------------------');
       // console.log(item);
 
       spriteData = gulp.src(item.src)
-                       .pipe(spritesmith(item));
-      imgStream = spriteData.img.pipe(gulp.dest('./'));
-      cssStream = spriteData.css.pipe(gulp.dest('./'));
+                       .pipe(spritesmith(item))
+                       .pipe(gulp.dest('./'));
    });
 
-   return merge(imgStream, cssStream);
+   return spriteData;
 });
 
 var AUTOPREFIXER_BROWSERS = [
@@ -86,9 +85,9 @@ gulp.task('less', function() {
                      // 'imgPath': '"/image"'
                   }
                }))
-               .pipe(sourcemaps.init())
+               // .pipe(sourcemaps.init())
                .pipe(autoprefixer({browsers: AUTOPREFIXER_BROWSERS}))
-               .pipe(sourcemaps.write('.'))
+               // .pipe(sourcemaps.write('.'))
                .pipe(gulp.dest('style'))
                .pipe(connect.reload());
 });
@@ -153,7 +152,7 @@ gulp.task('preview', function (done) {
       ['clean'],
       ['sprite'],
       ['less'],
-      // ['webpack'],
+      ['webpack'],
       ['useref'],
       ['minifyHtml'],
       ['combo'],
@@ -171,7 +170,7 @@ gulp.task('deploy', function (done) {
       ['clean'],
       ['sprite'],
       ['less'],
-      // ['webpack'],
+      ['webpack'],
       ['useref'],
       ['minifyHtml'],
       ['combo'],
@@ -282,18 +281,6 @@ gulp.task('cssReplace', function(){
              .pipe(gulp.dest('./'));
 });
 
-var sftpFiles = [];
-
-gulp.task('sftp:files', function(cb){
-   return gulp.src(['./dist/style/**', './dist/script/**', './dist/image/**'])
-               .pipe(through.obj(function(file, encode, cb) {
-                  if (!file.isNull()) {
-                     sftpFiles.push(slash(path.relative(process.cwd(), file.path)))
-                  }
-                  cb(null, file, encode);
-               }));
-});
-
 gulp.task('combo', function(cb){
    var loader = fs.readFileSync(path.resolve(__dirname, './gulp', 'lib', 'loader.js'), 'utf-8');
    var loaderCode = cmdModule.generateJSCode(UglifyJS.parse(loader), 'lib/loader', false).code;
@@ -320,8 +307,8 @@ gulp.task('combo', function(cb){
                         if (!modules[modName]) {
                            var result = cmdModule.generateJSCode(ast, modName, false);
                            modules[modName] = result.code;
-                           console.log('*******************************************');
-                           console.log(modules[modName]);
+                           // console.log('*******************************************');
+                           // console.log(modules[modName]);
                         }
                      }, depsQueue);
 
@@ -343,6 +330,31 @@ gulp.task('combo', function(cb){
                .pipe(gulp.dest('./script/dest/page'));
 });
 
+var sftpFiles = [];
+
+gulp.task('sftp:files', function(cb){
+   return gulp.src(['./dist/style/**', './dist/script/**', './dist/image/**'])
+               .pipe(through.obj(function(file, encode, cb) {
+                  if (!file.isNull()) {
+                     sftpFiles.push(slash(path.relative(process.cwd(), file.path)))
+                  }
+                  cb(null, file, encode);
+               }));
+});
+
+
+///TODO: 处理ftp根目录权限
+var fixedFtpPath = (function () {
+   var ftpBasePath = packageJson.sftp.ftpBasePath || '/';
+   ftpBasePath = ftpBasePath.replace(/^\/|\/$/gi, '');
+
+   return function (path) {
+      if (ftpBasePath !== '') {
+         path = path.replace(new RegExp('^\/' + ftpBasePath), '');
+      }
+      return path;
+   }
+})();
 
 gulp.task('sftp:upload', function(cb){
    var ftp = new Ftp();
@@ -363,9 +375,11 @@ gulp.task('sftp:upload', function(cb){
    });
 
    function startFtp() {
-      gutil.log('[INFO] ftp start!!!!');
+      gutil.log('[INFO] ftp start!!!!')
       var walkInto = function (src, callback) {
+         src = fixedFtpPath(src);
          gutil.log('[INFO] ftp list src = ' + src);
+
          ftp.list(src, function (err, files) {
             var pending = files.length;
             if (!pending) return callback();
@@ -379,7 +393,7 @@ gulp.task('sftp:upload', function(cb){
                      }
                   });
                } else {
-                  ftpFiles.push(filePath.replace(projectDirPath, ''));
+                  ftpFiles.push(filePath.replace(fixedFtpPath(projectDirPath), ''));
                   if (!--pending) {
                      callback();
                   }
@@ -389,6 +403,7 @@ gulp.task('sftp:upload', function(cb){
       };
       
       walkInto(projectDirPath, function () {
+         // console.log(ftpFiles);
          var newFiles = sftpFiles.filter(function (file) {
             var flag = true;
 
@@ -397,6 +412,7 @@ gulp.task('sftp:upload', function(cb){
             }
             return flag;
          });
+         // console.log(newFiles);
          uploadFiles(newFiles);
       });
    }
@@ -408,8 +424,11 @@ gulp.task('sftp:upload', function(cb){
       var filesLength = newFiles.length;
       if (newFiles.length != 0) {
          gutil.log('[INFO]' + new String(filesLength) + ' 个文件需要上传.');
+         
          newFiles.forEach(function(file) {
             var destPath = projectDirPath + file.replace(/^dist\//i, '');
+            destPath = fixedFtpPath(destPath);
+            // console.log('destPath = ' + destPath);
             ftp.mkdir(destPath.match(/(.*)\/.*/)[1], true, function() {
                ftp.put(file, destPath, function(err) {
                   if (err) {
@@ -423,7 +442,7 @@ gulp.task('sftp:upload', function(cb){
                      cb();
                   }
                });
-            })
+            });
          });
       } else {
          ftp.end();
