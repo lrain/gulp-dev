@@ -5,7 +5,6 @@ var $ = require('gulp-load-plugins')();
 var colors = require('colors');
 var runSequence = require('run-sequence')
 var through = require('through2');
-var concat = require('gulp-concat');
 var filter = require('gulp-filter');
 var gutil = require('gulp-util');
 var spritesmith = require('gulp.spritesmith');
