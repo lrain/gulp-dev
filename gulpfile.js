@@ -102,7 +102,7 @@ gulp.task('webpack', function() {
 gulp.task('watch', function () {
    gulp.watch('less/**/*.less', ['less']);
 
-   gulp.watch(['script/**/*.@(js|handlebars)'], ['webpack']);
+   gulp.watch(['script/**/*.@(js|handlebars)', '!script/dest/**/*.js'], ['webpack']);
 });
 
 gulp.task('webserver:dev', function() {
