@@ -1,3 +1,3 @@
 module.exports = function() {
-    document.write('hello index!!!!!!!');
+    // document.write('hello index!!!!!!!');
 };
