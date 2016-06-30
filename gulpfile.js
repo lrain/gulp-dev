@@ -102,7 +102,7 @@ gulp.task('webpack', function() {
 gulp.task('watch', function () {
    gulp.watch('less/**/*.less', ['less']);
 
-   gulp.watch(['script/page_webpack/**/*.js', 'script/module/**/*.js'], ['webpack']);
+   gulp.watch(['script/**/*.@(js|handlebars)'], ['webpack']);
 });
 
 gulp.task('webserver:dev', function() {
@@ -416,7 +416,7 @@ gulp.task('sftp:upload', function(cb){
             return flag;
          });
          // console.log(newFiles);
-         // uploadFiles(newFiles);
+         uploadFiles(newFiles);
       });
    }
 
