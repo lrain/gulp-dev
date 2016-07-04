@@ -3,7 +3,7 @@ var path = require('path');
 var fs = require('fs');
 var $ = require('gulp-load-plugins')();
 var colors = require('colors');
-var runSequence = require('run-sequence')
+var runSequence = require('run-sequence');
 var through = require('through2');
 var filter = require('gulp-filter');
 var gutil = require('gulp-util');
@@ -248,8 +248,8 @@ gulp.task('htmlReplace', function(){
   
   return gulp.src('./dist/html/**/*.html', {base: '.'})
              .pipe(revReplace({manifest: manifest}))
-             .pipe(gulpif(CONFIG['isDeploy'], replace(/([href|src]+?\=[\"\'])\.\.\/([script|style|image]+)/gi, function ($0, $1, $2) {
-                return $1 + cdnPath + $2;
+             .pipe(gulpif(CONFIG['isDeploy'], replace(/(\s(?:href|src)=['"])[\.\/]*([^'"]+)(['"])/gi, function ($0, $1, $2, $3) {
+                return $1 + cdnPath + $2 + $3;
              })))
              .pipe(gulp.dest('./'));
 });
@@ -365,8 +365,8 @@ gulp.task('sftp:upload', function(cb){
       gutil.log('[INFO] ftp connect ready!!!!');
       ftp.cwd(projectDirPath, function (err) {
          if (err) {
-            gutil.log('[INFO] ftp mkdir ' + projectDirPath.green);
-            ftp.mkdir(projectDirPath, true, function() {
+            gutil.log('[INFO] ftp mkdir ' + fixedFtpPath(projectDirPath).green);
+            ftp.mkdir(fixedFtpPath(projectDirPath), true, function() {
                startFtp();
             });
          } else {
