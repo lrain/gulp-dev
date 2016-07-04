@@ -56,7 +56,6 @@ gulp.task('sprite', function(cb) {
       item = spriteOptions[key];
       // console.log('------------------------------------------------');
       // console.log(item);
-
       spriteData = gulp.src(item.src)
                        .pipe(spritesmith(item))
                        .pipe(gulp.dest('./'));
